@@ -1,15 +1,14 @@
 #!/bin/bash
 
-project_path=$(pwd)
-code_path=${project_path}/code/
-out_path=${project_path}/code/out
+CUR_PATH=$(pwd)
+CODE_PATH=${CUR_PATH}/code
+OUT_PATH=${CUR_PATH}/out
 
 # 注释
 #
 #
 #
 #
-
 machinelist=(Hisi Qualcomm)
 distrolist=(console tiny initgc)
 imagelist=(console docker minimal tiny prerootfs wayland)
@@ -54,18 +53,14 @@ __func_long_help_messge()
 
 __func_clean()
 {
-    rm -rf $out_path
+    rm -rf $OUT_PATH
 }
 
 __func_compile()
 {
-    __func_clean
-    mkdir -p $out_path
-    cd $out_path
-    # echo $out_path
-    # echo $code_path
-    cmake ../
-    cd -
+    cd $OUT_PATH
+    cmake $CUR_PATH
+    make
 }
 
 __func_help()
@@ -104,6 +99,13 @@ __func_help()
      done
 }
 
+__func_compile_pre()
+{
+    __func_clean
+    mkdir -p $OUT_PATH
+    env > $OUT_PATH/environment.log
+}
+
 if [ "$(whoami)" = "root" ]; then
     echo "ERROR: do not use the BSP as root. Exiting..."
     exit 1
@@ -117,7 +119,10 @@ __func_help $1 $2
 # 关闭nocasematch模式
 shopt -u nocasematch
 
+__func_compile_pre
 __func_compile
+
+echo "Build Succes... !!!"
 
 
 
