@@ -1,37 +1,32 @@
 #!/bin/bash
 
+# 定义代码源目录、输出目录、编译日志目录等
 CUR_PATH=$(pwd)
 CODE_PATH=${CUR_PATH}/code
+CUST_PATH=${CUR_PATH}/cust
 OUT_PATH=${CUR_PATH}/out
+OUT_CMAKE_PATH=${CUR_PATH}/out/cmakelog
 
 # 注释
-#
-#
-#
-#
-machinelist=(Hisi Qualcomm)
-distrolist=(console tiny initgc)
-imagelist=(console docker minimal tiny prerootfs wayland)
 userlist=(userdebug user eng)
+prolist=$(ls -l ${CUST_PATH} | awk '/^d/ {print $NF}') 
 
 long_help_message="
 build.sh help message as below:
    -h, --help, ?    report help message
-   -m, MACHINE      print MACHINENAME list
-   -d, DISTRO       print DISTRONAME list
-   -i, IMAGE        print IMAGENAME list
    -u, USER         print USERNAME list， [userdebug as default]
+   -p, porject      cur porject list
 
-    ##--------------------------------------------------------------------##
-    ## build.sh arguments include:                                        ##
-    ##     MACHINENAME, DISTRONAME, IMAGENAME, USERNAME                   ##
-    ##                                                                    ##
-    ## build modle:                                                       ##
-    ##    ./build.sh MACHINENAME+DISTRONAME+IMAGENAME USERNAME            ##
-    ##                                                                    ##
-    ## build sample:                                                      ##
-    ##    ./build.sh sl8563-cpe-2h10+initgc+console userdebug             ##
-    ##------------------------------------------------------------------- ##
+    ##----------------------------------------------------------------------##
+    ## build.sh arguments include:                                          ##
+    ##     PROJECTNAME, USERNAME                                            ##
+    ##                                                                      ##
+    ## build modle:                                                         ##
+    ##    ./build.sh  PROJECTNAME USERNAME                                  ##
+    ##                                                                      ##
+    ## build sample:                                                        ##
+    ##    ./build.sh -p Clound userdebug                                    ##
+    ##----------------------------------------------------------------------##
 "
 
 __func_build_list()
@@ -58,9 +53,12 @@ __func_clean()
 
 __func_compile()
 {
-    cd $OUT_PATH
+    cd $OUT_CMAKE_PATH
     cmake $CUR_PATH
-    make
+    # 输出make环境变量
+    env > $OUT_PATH/environment.log
+    # 1 标准输出  2标识标准错误   , tee 读取标准输入的数据，并将其内容输出成文件
+    make 2>&1 | tee $OUT_PATH/compile.log
 }
 
 __func_help()
@@ -72,23 +70,15 @@ __func_help()
                 __func_long_help_messge
                 break
                 ;;
-         -m|MACHINE)
-                __func_build_list "${machinelist[*]}" "MACHINENAME"
+         -p|project)
+                __func_build_list "${prolist[*]}" "PROLIST"
                 break
                 ;;
-         -d|DISTRO)
-                __func_build_list "${distrolist[*]}" "DISTRONAME"
+         -u|user*|eng)
+                __func_build_list "${userlist[*]}" "USERLIST"
                 break
                 ;;
-         -i|IMAGE)
-                __func_build_list "${imagelist[*]}" "IMAGENAME"
-                break
-                ;;
-         -u|USER*|ENG)
-                __func_build_list "${userlist[*]}" "USERNAME"
-                #break
-                ;;
-         -c|CLEAN)
+         -c|clean)
                 __func_clean
                 exit 0
                 ;;
@@ -102,8 +92,7 @@ __func_help()
 __func_compile_pre()
 {
     __func_clean
-    mkdir -p $OUT_PATH
-    env > $OUT_PATH/environment.log
+    mkdir -p $OUT_CMAKE_PATH
 }
 
 if [ "$(whoami)" = "root" ]; then
@@ -123,8 +112,3 @@ __func_compile_pre
 __func_compile
 
 echo "Build Succes... !!!"
-
-
-
-
-

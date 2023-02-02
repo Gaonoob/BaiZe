@@ -11,13 +11,22 @@ if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
 
+#--------------------------------------------
+# compile pre config
+#--------------------------------------------
 # 指定项目版本 版本号 等等
-PROJECT(BaiZe VERSION ${BAIZE_VERSION})
+PROJECT(BaiZe VERSION ${BAIZE_BASE_VERSION})
 
 # Debug 打印
 MESSAGE(INFO "--------------------------------")
-MESSAGE(STATUS "Build BaiZe Ver: ${BAIZE_VERSION}") # 输出前缀为—-的信息
+MESSAGE(STATUS "Build BaiZe Ver: ${BAIZE_BASE_VERSION}") # 输出前缀为—-的信息
 MESSAGE(INFO "--------------------------------")
+MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")  
+
+#--------------------------------------------
+# compile config
+#--------------------------------------------
+
 
 
 #--------------------------------------------
