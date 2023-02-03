@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.8)    #cmake的最低版本要求
 # load configuration
 #--------------------------------------------
 INCLUDE(cmake/utils.cmake)
-DECODE_VERSION()
+decode_base_info()
 
 # 处理云平台服务器编译失败
 if (POLICY CMP0048)
@@ -21,13 +21,11 @@ PROJECT(BaiZe VERSION ${BAIZE_BASE_VERSION})
 MESSAGE(INFO "--------------------------------")
 MESSAGE(STATUS "Build BaiZe Ver: ${BAIZE_BASE_VERSION}") # 输出前缀为—-的信息
 MESSAGE(INFO "--------------------------------")
-MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")  
+MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")
 
 #--------------------------------------------
 # compile config
 #--------------------------------------------
-
-
 
 #--------------------------------------------
 # Build application
