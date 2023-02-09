@@ -1,43 +1,53 @@
 #!/bin/bash
 
-# 定义代码源目录、输出目录、编译日志目录等
-CUR_PATH=$(pwd)
-CODE_PATH=${CUR_PATH}/code
-CUST_PATH=${CUR_PATH}/cust
-OUT_PATH=${CUR_PATH}/out
-OUT_CMAKE_PATH=${CUR_PATH}/out/cmakelog
+# 源目录
+export CUR_PATH=$(pwd)
+export CODE_PATH=${CUR_PATH}/code
+export CUST_PATH=${CUR_PATH}/cust
+export SCRIPTS_PATH=${CUR_PATH}/prebuilts/scripts
 
-# 注释
-userlist=(userdebug user eng)
-prolist=$(ls -l ${CUST_PATH} | awk '/^d/ {print $NF}') 
+# 输出目录
+export OUT_PATH=${CUR_PATH}/out
+export OUT_CMAKE_PATH=${CUR_PATH}/out/cmakelog
+
+# 临时目录,仅用于定制覆盖 不会影响源代码
+export TMP_PATH=${CUR_PATH}/build
+
+# 默认编译选项
+export PROJECT_NAME=Ubuntu
+export BUILD_MODE=userdebug
+
+# 参数注释
+modelist=(userdebug user clean)
+projlist=$(ls -l ${CUST_PATH} | awk '/^d/ {print $NF}')
 
 long_help_message="
 build.sh help message as below:
-   -h, --help, ?    report help message
-   -u, USER         print USERNAME list， [userdebug as default]
-   -p, porject      cur porject list
+    -h, --help       report help message
+    -p, --porj       porject
+    -m, --mode       build mode
 
     ##----------------------------------------------------------------------##
     ## build.sh arguments include:                                          ##
-    ##     PROJECTNAME, USERNAME                                            ##
+    ##     PROJLIST, MODELIST                                               ##
     ##                                                                      ##
     ## build modle:                                                         ##
-    ##    ./build.sh  PROJECTNAME USERNAME                                  ##
+    ##    ./build.sh  -p PROJLIST -m MODELIST                               ##
+    ##    ./build.sh  --proj PROJLIST --mode MODELIST                       ##
     ##                                                                      ##
     ## build sample:                                                        ##
-    ##    ./build.sh -p Clound userdebug                                    ##
+    ##    ./build.sh -p Clound -m userdebug                                 ##
     ##----------------------------------------------------------------------##
 "
 
 __func_build_list()
 {
     names=$1
-    echo "$2 list:"
+    echo "$2 LIST:"
     for ((i=0; i<${#names[*]}; i++))
     {
        echo ${names[$i]}
     }
-    exit 0;
 }
 
 __func_long_help_messge()
@@ -49,66 +59,59 @@ __func_long_help_messge()
 __func_clean()
 {
     rm -rf $OUT_PATH
-}
-
-__func_compile()
-{
-    cd $OUT_CMAKE_PATH
-    cmake $CUR_PATH
-    # 输出make环境变量
-    env > $OUT_PATH/environment.log
-    # 1 标准输出  2标识标准错误   , tee 读取标准输入的数据，并将其内容输出成文件
-    make 2>&1 | tee $OUT_PATH/compile.log
-}
-
-__func_help()
-{
-     for loop in $@
-     do
-         case $loop in
-         ?|-h|*help)
-                __func_long_help_messge
-                break
-                ;;
-         -p|project)
-                __func_build_list "${prolist[*]}" "PROLIST"
-                break
-                ;;
-         -u|user*|eng)
-                __func_build_list "${userlist[*]}" "USERLIST"
-                break
-                ;;
-         -c|clean)
-                __func_clean
-                exit 0
-                ;;
-         *)
-                break
-                ;;
-         esac
-     done
+    echo "Clean Succesed !!!"
 }
 
 __func_compile_pre()
 {
     __func_clean
     mkdir -p $OUT_CMAKE_PATH
+    mkdir -p $TMP_PATH
 }
 
+# 非 root 执行
 if [ "$(whoami)" = "root" ]; then
     echo "ERROR: do not use the BSP as root. Exiting..."
     exit 1
 fi
 
-# 开启nocasematch模式
-shopt -s nocasematch
+# $@传入脚本的所有参数
+ARGS=`getopt -n "build.sh" -o "hp:m:" -l "help,proj:,mode:" -- "$@"`
 
-__func_help $1 $2
+# eval 命令用于将其后的内容作为单个命令读取和执行，这里用于处理getopt命令生成的参数的转义字符。
+eval set -- "${ARGS}"
 
-# 关闭nocasematch模式
-shopt -u nocasematch
+while [ -n "$1" ]
+do
+    case "${1}" in
+        -h | --help)
+            __func_build_list "${projlist[*]}" "PROJLIST"
+            __func_build_list "${modelist[*]}" "MODELIST"
+            __func_long_help_messge
+            exit ;;
+        -p | --proj)
+            if [[ -n "${1}" ]]; then
+                PROJECT_NAME=${2}
+            fi
+            shift;; # 右移
+        -m | --mode)
+            if [[ -n "${1}" ]]; then
+                BUILD_MODE=${2}
+            fi
+            shift;;
+        --)
+            shift
+            break ;;
+        *)
+            echo "$1 is not an option"
+            exit 1 ;;  # 发现未知参数，直接退出
+    esac
+    shift
+done
 
-__func_compile_pre
-__func_compile
+# 校验参数
 
-echo "Build Succes... !!!"
+# __func_compile_pre
+
+#sh $SCRIPTS_PATH/compile.sh
+echo "Build Succesed !!!"
