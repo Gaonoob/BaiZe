@@ -6,10 +6,16 @@ export CODE_PATH=${CUR_PATH}/code
 export CUST_PATH=${CUR_PATH}/cust
 export SCRIPTS_PATH=${CUR_PATH}/prebuilts/scripts
 
+
+# 临时目录,仅用于定制覆盖 不会影响源代码
+export BUILD_PATH=${CUR_PATH}/build
+
 # 输出目录
-export TMP_PATH=${CUR_PATH}/build # 临时目录,仅用于定制覆盖 不会影响源代码
-export OUT_PATH=${TMP_PATH}/out
-export OUT_CMAKE_PATH=${TMP_PATH}/out/cmakelog
+export OUT_PATH=${BUILD_PATH}/out
+
+# 输出Log目录
+export OUT_LOG_PATH=${BUILD_PATH}/log
+export OUT_LOG_CMAKE_PATH=${BUILD_PATH}/log/cmake # Log cmake目录
 
 # 参数注释
 BUILDMODE=(userdebug user clean scan)
@@ -21,6 +27,8 @@ PROJECT_NAME=ubuntu
 BUILD_MODE=userdebug
 
 
+###############################################################################
+###############################################################################
 long_help_message="
 build.sh help message as below:
     -h, --help       report help message
