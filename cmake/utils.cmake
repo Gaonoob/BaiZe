@@ -1,6 +1,6 @@
 # 读取项目基本信息
 FUNCTION(decode_base_info)
-    FILE(READ "cust/baize_base_info.cfg" file_contents) 
+    FILE(READ "./baize_base_info.cfg" file_contents) 
     STRING(REGEX MATCH "BAIZE_VER_MAJOR ([0-9]+)" _  "${file_contents}")       
     IF(NOT CMAKE_MATCH_COUNT EQUAL 1)                                           
         MESSAGE(FATAL_ERROR "Could not extract major version number from version.cfg") # FATAL_ERROR，立即终止所有 cmake 过程.
@@ -24,7 +24,7 @@ ENDFUNCTION()
 
 # 读取项目定制信息
 FUNCTION(decode_cust_info)
-    FILE(READ "cust/baize_cust_info.cfg" file_contents) 
+    FILE(READ "./baize_cust_info.cfg" file_contents) 
     STRING(REGEX MATCH "BAIZE_VER_MAJOR ([0-9]+)" _  "${file_contents}")       
     IF(NOT CMAKE_MATCH_COUNT EQUAL 1)                                           
         MESSAGE(FATAL_ERROR "Could not extract major version number from version.cfg") # FATAL_ERROR，立即终止所有 cmake 过程.

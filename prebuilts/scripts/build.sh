@@ -7,19 +7,19 @@ export CUST_PATH=${CUR_PATH}/cust
 export SCRIPTS_PATH=${CUR_PATH}/prebuilts/scripts
 
 # 输出目录
-export OUT_PATH=${CUR_PATH}/out
-export OUT_CMAKE_PATH=${CUR_PATH}/out/cmakelog
-
-# 临时目录,仅用于定制覆盖 不会影响源代码
-export TMP_PATH=${CUR_PATH}/build
-
-# 默认编译选项
-export PROJECT_NAME=Ubuntu
-export BUILD_MODE=userdebug
+export TMP_PATH=${CUR_PATH}/build # 临时目录,仅用于定制覆盖 不会影响源代码
+export OUT_PATH=${TMP_PATH}/out
+export OUT_CMAKE_PATH=${TMP_PATH}/out/cmakelog
 
 # 参数注释
-modelist=(userdebug user clean)
-projlist=$(ls -l ${CUST_PATH} | awk '/^d/ {print $NF}')
+BUILDMODE=(userdebug user clean scan)
+PROJLIST=$(ls -l ${CUST_PATH} | awk '/^d/ {print $NF}')
+MODELIST=${BUILDMODE[@]}
+
+# 默认编译选项
+PROJECT_NAME=ubuntu
+BUILD_MODE=userdebug
+
 
 long_help_message="
 build.sh help message as below:
@@ -36,43 +36,60 @@ build.sh help message as below:
     ##    ./build.sh  --proj PROJLIST --mode MODELIST                       ##
     ##                                                                      ##
     ## build sample:                                                        ##
-    ##    ./build.sh -p Clound -m userdebug                                 ##
+    ##    ./build.sh -p ubuntu -m userdebug                                 ##
     ##----------------------------------------------------------------------##
 "
 
-__func_build_list()
-{
-    names=$1
-    echo "$2 LIST:"
-    for ((i=0; i<${#names[*]}; i++))
-    {
-       echo ${names[$i]}
-    }
-}
-
+# 打印Help
 __func_long_help_messge()
 {
     echo "$long_help_message"
     exit 0
 }
 
-__func_clean()
+# 打印错误原因
+__func_print_err_messge()
 {
-    rm -rf $OUT_PATH
-    echo "Clean Succesed !!!"
+    case $(($1)) in
+        0)
+            echo "ERROR: do not use the BSP as root."
+            ;;
+        1)
+            echo "ERROR: Invalid argument."
+            ;;
+        *)
+            echo "ERROR: Invalid argument."
+            ;;
+    esac
+
+    echo "Build Eixt ..."
+    exit 1
 }
 
-__func_compile_pre()
+#在搜索$1,如果找不到$? 的值将会非0，所有用这个作为判断条件。
+__func_check_argument()
 {
-    __func_clean
-    mkdir -p $OUT_CMAKE_PATH
-    mkdir -p $TMP_PATH
+    echo $1 | grep -wq $2
+    if [  $? != 0  ];then
+        __func_print_err_messge 1 #不位于列表
+    fi
+}
+
+# 校验入参
+__func_verify_input_parameter()
+{
+    # 参数大小写转换
+    export PROJECT_NAME=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
+    export BUILD_MODE=$(echo "$BUILD_MODE" | tr '[:upper:]' '[:lower:]')
+
+    # 检查参数是否在List中
+    __func_check_argument "$PROJLIST" "$PROJECT_NAME"
+    __func_check_argument "$MODELIST" "$BUILD_MODE"
 }
 
 # 非 root 执行
 if [ "$(whoami)" = "root" ]; then
-    echo "ERROR: do not use the BSP as root. Exiting..."
-    exit 1
+    __func_print_err_messge 0
 fi
 
 # $@传入脚本的所有参数
@@ -85,15 +102,15 @@ while [ -n "$1" ]
 do
     case "${1}" in
         -h | --help)
-            __func_build_list "${projlist[*]}" "PROJLIST"
-            __func_build_list "${modelist[*]}" "MODELIST"
+            echo "PROJLIST:" ${PROJLIST}
+            echo "MODELIST: ${MODELIST}"
             __func_long_help_messge
             exit ;;
         -p | --proj)
             if [[ -n "${1}" ]]; then
                 PROJECT_NAME=${2}
             fi
-            shift;; # 右移
+            shift;; #右移
         -m | --mode)
             if [[ -n "${1}" ]]; then
                 BUILD_MODE=${2}
@@ -103,15 +120,13 @@ do
             shift
             break ;;
         *)
-            echo "$1 is not an option"
-            exit 1 ;;  # 发现未知参数，直接退出
+            __func_print_err_messge 1
     esac
     shift
 done
 
-# 校验参数
+__func_verify_input_parameter
 
-# __func_compile_pre
+bash $SCRIPTS_PATH/compile.sh
 
-#sh $SCRIPTS_PATH/compile.sh
 echo "Build Succesed !!!"
