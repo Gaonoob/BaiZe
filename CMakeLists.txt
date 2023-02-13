@@ -28,17 +28,7 @@ MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")
 #--------------------------------------------
 
 #--------------------------------------------
-# Build application
+# Add application
 #--------------------------------------------
-# 代表头文件所在的路径
-include_directories(code/inc)
+ADD_SUBDIRECTORY(code)
 
-# 文件夹Func2别名为SRC_LIST2
-aux_source_directory(code/src SRC)
-
-# 生成可执行文件，编译辅助源文件目录SRC下面的文件夹
-add_executable(main ${SRC})
-#add_executable(main main.c) #main 生成bin名成  main.c为源码
-
-# 设定可执行文件输出目录是在工程根目录下的bin文件夹
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/out/bin) 
